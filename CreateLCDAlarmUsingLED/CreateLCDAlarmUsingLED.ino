@@ -4,16 +4,17 @@
 
 /* Turn On LED */
 #define SHOWLOG true
-#define PIEZO_OUTPUT 8
-#define SWITCH_INPUT 9
+#define LED_OUTPUT 13
+#define SWITCH_INPUT 12
 
 const int INPUT_DIGITAL_PINS[] = { SWITCH_INPUT };
-const int OUTPUT_DIGITAL_PINS[] = { PIEZO_OUTPUT };
+const int OUTPUT_DIGITAL_PINS[] = { LED_OUTPUT };
 
-LiquidCrystal lcd(12, 11, 2, 3, 4, 5 ); // LiquidCrystal(rs, enable, data0, data1, data2, data3)
+LiquidCrystal lcd(11, 10, 2, 3, 4, 5 ); // LiquidCrystal(rs, enable, data0, data1, data2, data3)
 swRTC rtc;
 
 int alarmTime;
+
 
 void setup() {
   if (SHOWLOG) {
@@ -78,7 +79,7 @@ void loop() {
 
   // 알람 시간 설정
   SetAlarmTime(currentTime); 
-
+  
   // 1초마다 갱신
   delay(1000);
 }
@@ -125,7 +126,7 @@ void CheckTheAlarmTime() {
   int alarmMinute = alarmTime % 100;
 
   if (alarmHour == rtc.getHours() && alarmMinute == rtc.getMinutes()) {
-    analogWrite(PIEZO_OUTPUT, 128);
+    digitalWrite(LED_OUTPUT, HIGH);
   }
 }
 
@@ -137,29 +138,28 @@ void ShowSavedAlarm() {
   SetLowThanTen(alarmTime % 100);
 }
 
+
 // 스위치 버튼이 눌렸을 때 피에조 스피커의 소리를 0으로 하고 알람 시간 초기화
 void StopAlarm(int* currentTime){
   if (digitalRead(SWITCH_INPUT)) {
     alarmTime = 0;
     *currentTime = 0;
-    //digitalWrite(LED_OUTPUT, LOW);
-    analogWrite(PIEZO_OUTPUT, 0);
+    digitalWrite(LED_OUTPUT, LOW);
     Serial.println("Alarm clock is initialized");
     Serial.println("AM00:00");
   }
 }
 
-
 // 시리얼 통신을 통해 알람시간을 입력받고 시리얼 모니터에 출력
 void SetAlarmTime(int currentTime){
-  char theDay[4];
+  char inputLetter[4];
   int i = 0;
   if (Serial.available()) {
     while (Serial.available()) {
-      theDay[i] = Serial.read();
+      inputLetter[i] = Serial.read();
       i++;
     }
-    currentTime = atoi(theDay);
+    currentTime = atoi(inputLetter);
 
     if (day / 100 > 12) {
       Serial.print("PM");
@@ -179,7 +179,6 @@ void SetAlarmTime(int currentTime){
   }
 }
 
-
 // 유효한 알람인지 체크
 int CheckTheAlarmClock(int time) {
   if (time / 100 < 24 && time % 100 < 60) {
@@ -190,7 +189,6 @@ int CheckTheAlarmClock(int time) {
     return 0;
   }
 }
-
 
 void ShowLog(String message) {
 
